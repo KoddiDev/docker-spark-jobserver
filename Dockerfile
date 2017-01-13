@@ -1,28 +1,39 @@
-FROM ubuntu:14.04.3
-MAINTAINER tobilg <fb.tools.github@gmail.com>
+FROM ubuntu:16.04
+MAINTAINER Kyro <kyro@koddi.com>
 
 # packages
 RUN apt-get update && apt-get install -yq --no-install-recommends --force-yes \
+    tar \
     wget \
     git \
-    openjdk-7-jre \
-    libjansi-java \
-    libsvn1 \
-    libcurl3 \
+    openjdk-8-jdk \
+    autoconf \
+    libtool \
+    build-essential \
+    python-dev \
+    libcurl4-nss-dev \
+    maven \
+    libapr1-dev \
+    libsvn-dev \
+    zlib1g-dev \
+    libsasl2-dev \
     libsasl2-modules && \
     rm -rf /var/lib/apt/lists/*
 
+    #apt-transport-https && \
 # Overall ENV vars
-ENV SBT_VERSION 0.13.7
-ENV SCALA_VERSION 2.10.5
-ENV SPARK_VERSION 1.4.1
-ENV MESOS_BUILD_VERSION 0.24.1-0.2.35
-ENV SPARK_JOBSERVER_BRANCH v0.6.0
+ENV SBT_VERSION 0.14.3
+ENV SCALA_VERSION 2.11.8
+ENV SPARK_VERSION 2.0.1
+ENV MESOS_BUILD_VERSION 1.1.0
+ENV SPARK_JOBSERVER_BRANCH spark-2.0-preview
+#ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk
 
 # SBT install
-RUN wget https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb && \
-    dpkg -i sbt-$SBT_VERSION.deb && \
-    rm sbt-$SBT_VERSION.deb
+RUN echo "deb http://dl.bintray.com/sbt/debian /" | tee -a /etc/apt/sources.list.d/sbt.list && \
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 2EE0EA64E40A89B84B2DF73499E82A75642AC823 && \
+    apt-get update && \
+    apt-get install sbt
 
 # Scala install
 RUN wget http://downloads.typesafe.com/scala/$SCALA_VERSION/scala-$SCALA_VERSION.deb && \
@@ -30,12 +41,21 @@ RUN wget http://downloads.typesafe.com/scala/$SCALA_VERSION/scala-$SCALA_VERSION
     rm scala-$SCALA_VERSION.deb
 
 # Mesos install
-RUN wget http://downloads.mesosphere.io/master/ubuntu/14.04/mesos_$MESOS_BUILD_VERSION.ubuntu1404_amd64.deb && \
-    dpkg -i mesos_$MESOS_BUILD_VERSION.ubuntu1404_amd64.deb && \
-    rm mesos_$MESOS_BUILD_VERSION.ubuntu1404_amd64.deb
+RUN wget http://archive.apache.org/dist/mesos/$MESOS_BUILD_VERSION/mesos-$MESOS_BUILD_VERSION.tar.gz
+RUN mkdir -p /usr/local/mesos && \
+    tar -zxf  mesos-$MESOS_BUILD_VERSION.tar.gz && \
+    mv mesos-$MESOS_BUILD_VERSION/* /usr/local/mesos/ && \
+    rm mesos-$MESOS_BUILD_VERSION.tar.gz && \
+    cd /usr/local/mesos/ && \
+    #sh bootstrap
+    mkdir build && \
+    cd build && \
+    ../configure && \
+    make  && \
+    make install
 
 # Spark ENV vars
-ENV SPARK_VERSION_STRING spark-$SPARK_VERSION-bin-hadoop2.6
+ENV SPARK_VERSION_STRING spark-$SPARK_VERSION-bin-hadoop2.7
 ENV SPARK_DOWNLOAD_URL http://d3kbcqa49mib13.cloudfront.net/$SPARK_VERSION_STRING.tgz
 
 # Download and unzip Spark
@@ -44,7 +64,7 @@ RUN wget $SPARK_DOWNLOAD_URL && \
     tar xvf $SPARK_VERSION_STRING.tgz -C /tmp && \
     cp -rf /tmp/$SPARK_VERSION_STRING/* /usr/local/spark/ && \
     rm -rf -- /tmp/$SPARK_VERSION_STRING && \
-    rm spark-$SPARK_VERSION-bin-hadoop2.6.tgz
+    rm spark-$SPARK_VERSION-bin-hadoop2.7.tgz
 
 # Set SPARK_HOME
 ENV SPARK_HOME /usr/local/spark
@@ -83,6 +103,6 @@ RUN unset SPARK_VERSION_STRING && \
     unset SPARK_JOBSERVER_BUILD_HOME && \
     unset MESOS_BUILD_VERSION
 
-EXPOSE 8090 9999
+#EXPOSE 8090 9999
 
 ENTRYPOINT ["/app/server_start.sh"]
