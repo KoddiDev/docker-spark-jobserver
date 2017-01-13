@@ -47,7 +47,6 @@ RUN mkdir -p /usr/local/mesos && \
     mv mesos-$MESOS_BUILD_VERSION/* /usr/local/mesos/ && \
     rm mesos-$MESOS_BUILD_VERSION.tar.gz && \
     cd /usr/local/mesos/ && \
-    #sh bootstrap
     mkdir build && \
     cd build && \
     ../configure && \
