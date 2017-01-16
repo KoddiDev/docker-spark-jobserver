@@ -5,7 +5,7 @@ It's a fork of from `tobilg/docker-spark-jobserver, with updated versions of spa
 
 To get started:
 
-    docker run -d -p 8090:8090 tobilg/spark-jobserver:latest
+    docker run -d -p 8090:8090 koddidev/spark-jobserver:latest
 
 This will start job server on port 8090 in a container, with H2 database and Mesos support, and expose that port to the host on which you run the container.
 
