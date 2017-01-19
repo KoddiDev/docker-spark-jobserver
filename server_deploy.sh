@@ -41,8 +41,12 @@ fi
 FILES="job-server-extras/target/scala-$majorVersion/spark-job-server.jar
        bin/server_start.sh
        bin/server_stop.sh
+       bin/kill-process-tree.sh
+       bin/manager_start.sh
+       bin/setenv.sh
        $CONFIG_DIR/$ENV.conf
-	   $CONFIG_DIR/$ENV.sh
+       $CONFIG_DIR/$ENV.sh
+       config/shiro.ini
        config/log4j-server.properties"
 
 echo Deploy locally -> Copy files
